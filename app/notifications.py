@@ -7,7 +7,7 @@ from firebase_admin import credentials, messaging
 if not firebase_admin._apps:
     cred_path = os.getenv(
         "FCM_CREDENTIALS_JSON",
-        "C:\\Users\\sachi\\Jupyter_Notebook\\Smile2Step_internship\\recommended_Engine\\firebase_keys.json",
+        "keys/localhost.json",
     )
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
