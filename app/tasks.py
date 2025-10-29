@@ -1,3 +1,4 @@
+# app/tasks.py
 import os
 from celery import Celery
 from app.database import AsyncSessionLocal
@@ -98,39 +99,3 @@ async def _handle_feedback(payload: dict):
         print(
             f"[INFO] Feedback processed for rec_state={rec_state_id}, patient={patient_id}"
         )
-
-
-# # app/tasks.py
-# from celery import Celery
-# import os
-# from app.notifications import send_fcm_notification
-
-# # r = redis.Redis(
-# #     host="redis-19922.crce182.ap-south-1-1.ec2.redns.redis-cloud.com",
-# #     port=19922,
-# #     decode_responses=True,
-# #     username="default",
-# #     password="*******",
-# # )
-
-# celery = Celery("tasks", broker=os.getenv("REDIS_URL", "redis://redis:6379/0"))
-
-
-# @celery.task(bind=True, max_retries=3)
-# def send_notification(self, patient_id, message, data=None):
-#     # Example: fetch token from DB here if needed
-#     print("send_notification", patient_id, message)
-#     send_fcm_notification(
-#         token="emQ5vQUcSHmAzMrkzT1ECP:APA91bF-EpCJDrPpfjqk3bC1jc6cxjTXVAligO0cscGAYuv8diCm1gYrF6EO1bsO9cBKzfXbwdCFC4M39tvT2kxrX6FS64JWkK1YAqsNDVVpcgG7mY327vQ",
-#         title="Alert",
-#         body=message,
-#         data=data or {},
-#     )
-#     return True
-
-
-# # @celery.task(bind=True, max_retries=3)
-# # def send_notification(self, patient_id, message, data=None):
-# #     # stub: call FCM or push gateway
-# #     print("send_notification", patient_id, message)
-# #     return True

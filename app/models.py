@@ -9,13 +9,17 @@ from sqlalchemy import (
     func,
     UniqueConstraint,
     ForeignKey,
-    Boolean
+    Boolean,
 )
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+
+
 class Base(DeclarativeBase):
     pass
+
+
 # -----------------------
 # Activity Table
 # -----------------------
@@ -26,7 +30,7 @@ class Activity(Base):
     step_order = Column(Integer, nullable=False)
     duration_days = Column(Integer, nullable=False)
     duration_minutes = Column(Integer, nullable=False)
-    content_jsonb = Column(JSON, nullable=False) # raw activity desc,material,video_url
+    content_jsonb = Column(JSON, nullable=False)  # raw activity desc,material,video_url
     alternatives = Column(ARRAY(Text), default=[])
     version = Column(String, default="v1.0")
     created_by = Column(String)
@@ -34,13 +38,15 @@ class Activity(Base):
     __table_args__ = (
         UniqueConstraint("red_flag", "step_order", name="ux_activities_redflag_step"),
     )
+
+
 # -----------------------
 # Recommendation State
 # -----------------------
 class RecommendationState(Base):
     __tablename__ = "recommendation_state"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    child_id = Column(Integer, nullable=False,index=True)
+    child_id = Column(Integer, nullable=False, index=True)
     patient_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     parent_id = Column(Integer, nullable=False)
     pediatrician_id = Column(Integer, nullable=True)
@@ -55,7 +61,11 @@ class RecommendationState(Base):
     skip_count = Column(Integer, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     __table_args__ = (
-    UniqueConstraint("child_id", "parent_id", "red_flag", name="ux_state_child_parent_redflag"),)
+        UniqueConstraint(
+            "child_id", "parent_id", "red_flag", name="ux_state_child_parent_redflag"
+        ),
+    )
+
 
 # -----------------------
 # Recommendation Audit
@@ -70,9 +80,11 @@ class RecommendationAudit(Base):
     pediatrician_id = Column(Integer, nullable=True)
     red_flag = Column(String)
     activity_id = Column(String)
-    rendered_card = Column(JSON) # AI generated message
+    rendered_card = Column(JSON)  # AI generated message
     ruleset_version = Column(String)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
 # -----------------------
 # Feedback Event
 # -----------------------
@@ -88,6 +100,8 @@ class FeedbackEvent(Base):
     feedback = Column(String, nullable=False)  # 'done'|'too_hard'|'skip'...
     notes = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
 # -----------------------
 # Device Token
 # -----------------------
@@ -100,6 +114,8 @@ class DeviceToken(Base):
     platform = Column(String)
     isActive = Column(Boolean)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
 # -----------------------
 # Scheduled Jobs
 # -----------------------
@@ -112,6 +128,8 @@ class ScheduledJob(Base):
     status = Column(String, default="queued")
     attempt = Column(Integer, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
 # -----------------------
 # Final Outcomes
 # -----------------------
@@ -125,11 +143,24 @@ class FinalOutcome(Base):
     red_flag = Column(String, nullable=False)
     total_activities_notified = Column(Integer, default=0)
     total_feedback_events = Column(Integer, default=0)
-    status = Column(String, nullable=False, default="open")  # 'open'|'resolved'|'escalated'|'not_resolved'
-    resolution_method = Column(String)  # 'feedback_done'|'auto_resolved'|'not_resolved_after_all'|'doctor_closed'
+    status = Column(
+        String, nullable=False, default="open"
+    )  # 'open'|'resolved'|'escalated'|'not_resolved'
+    resolution_method = Column(
+        String
+    )  # 'feedback_done'|'auto_resolved'|'not_resolved_after_all'|'doctor_closed'
     resolved_at = Column(TIMESTAMP(timezone=True))
-    last_feedback_event_id = Column(Integer, ForeignKey("feedback_events.id", ondelete="SET NULL"))
+    last_feedback_event_id = Column(
+        Integer, ForeignKey("feedback_events.id", ondelete="SET NULL")
+    )
     notes = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    __table_args__ = (UniqueConstraint("child_id","parent_id", "red_flag", name="ux_finaloutcome_parent_child_redflag"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "child_id",
+            "parent_id",
+            "red_flag",
+            name="ux_finaloutcome_parent_child_redflag",
+        ),
+    )
