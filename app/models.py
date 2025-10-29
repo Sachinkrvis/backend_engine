@@ -9,6 +9,7 @@ from sqlalchemy import (
     func,
     UniqueConstraint,
     ForeignKey,
+    Boolean
 )
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.dialects.postgresql import UUID
@@ -39,8 +40,9 @@ class Activity(Base):
 class RecommendationState(Base):
     __tablename__ = "recommendation_state"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    patient_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    parent_id = Column(Integer, nullable=True)
+    child_id = Column(Integer, nullable=False,index=True)
+    patient_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    parent_id = Column(Integer, nullable=False)
     pediatrician_id = Column(Integer, nullable=True)
     red_flag = Column(String, nullable=False)
     status = Column(String, nullable=False, default="active")
@@ -53,8 +55,8 @@ class RecommendationState(Base):
     skip_count = Column(Integer, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     __table_args__ = (
-        UniqueConstraint("patient_id", "red_flag", name="ux_state_patient_redflag"),
-    )
+    UniqueConstraint("child_id", "parent_id", "red_flag", name="ux_state_child_parent_redflag"),)
+
 # -----------------------
 # Recommendation Audit
 # -----------------------
@@ -62,8 +64,9 @@ class RecommendationAudit(Base):
     __tablename__ = "recommendation_audit"
     id = Column(Integer, primary_key=True, autoincrement=True)
     recommendation_state_id = Column(Integer)
+    child_id = Column(Integer, nullable=False)
     patient_id = Column(UUID(as_uuid=True))
-    parent_id = Column(Integer, nullable=True)
+    parent_id = Column(Integer, nullable=False)
     pediatrician_id = Column(Integer, nullable=True)
     red_flag = Column(String)
     activity_id = Column(String)
@@ -77,8 +80,9 @@ class FeedbackEvent(Base):
     __tablename__ = "feedback_events"
     id = Column(Integer, primary_key=True, autoincrement=True)
     recommendation_state_id = Column(Integer, nullable=False)
-    patient_id = Column(UUID(as_uuid=True), nullable=False)
-    parent_id = Column(Integer, nullable=True)
+    child_id = Column(Integer, nullable=False)
+    patient_id = Column(UUID(as_uuid=True), nullable=True)
+    parent_id = Column(Integer, nullable=False)
     pediatrician_id = Column(Integer, nullable=True)
     activity_id = Column(String)
     feedback = Column(String, nullable=False)  # 'done'|'too_hard'|'skip'...
@@ -90,11 +94,11 @@ class FeedbackEvent(Base):
 class DeviceToken(Base):
     __tablename__ = "device_tokens"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    patient_id = Column(UUID(as_uuid=True), index=True)
-    parent_id = Column(Integer, nullable=True)
-    pediatrician_id = Column(Integer, nullable=False)
+    parent_id = Column(Integer, nullable=True, index=True)
+    pediatrician_id = Column(Integer, nullable=True)
     token = Column(String, nullable=False)
     platform = Column(String)
+    isActive = Column(Boolean)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 # -----------------------
 # Scheduled Jobs
@@ -109,31 +113,15 @@ class ScheduledJob(Base):
     attempt = Column(Integer, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 # -----------------------
-# Patient
-# -----------------------
-# class Patient(Base):
-#     __tablename__ = "patient"
-#     patient_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     username = Column(String, nullable=False)
-#     email = Column(String, nullable=False)
-# -----------------------
-# Patient Milestone Tracker
-# -----------------------
-# class PatientMilestoneTracker(Base):
-#     __tablename__ = "patient__tracker"
-#     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-#     patient_id = Column(UUID(as_uuid=True), nullable=False)
-#     red_flag = Column(String, nullable=False)
-#     red_flag_check = Column(String)
-# -----------------------
 # Final Outcomes
 # -----------------------
 class FinalOutcome(Base):
     __tablename__ = "final_outcomes"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    patient_id = Column(UUID(as_uuid=True), nullable=False)
-    parent_id = Column(Integer, nullable=True)
-    doctor_id = Column(Integer, nullable=True)  # pediatrician_id
+    child_id = Column(Integer, nullable=False)
+    patient_id = Column(UUID(as_uuid=True), nullable=True)
+    parent_id = Column(Integer, nullable=False)
+    pediatrician_id = Column(Integer, nullable=True)  # pediatrician_id
     red_flag = Column(String, nullable=False)
     total_activities_notified = Column(Integer, default=0)
     total_feedback_events = Column(Integer, default=0)
@@ -144,4 +132,4 @@ class FinalOutcome(Base):
     notes = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    __table_args__ = (UniqueConstraint("patient_id", "red_flag", name="ux_finaloutcome_patient_redflag"),)
+    __table_args__ = (UniqueConstraint("child_id","parent_id", "red_flag", name="ux_finaloutcome_parent_child_redflag"),)

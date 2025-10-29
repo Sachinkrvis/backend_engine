@@ -1,2 +1,20 @@
 /venv
 firebase_keys.json
+__pycache__/
+# Ignore CPython compiled files
+*.cpython-*
+*.so
+*.pyd
+*.dll
+
+# Ignore Cython build directories
+build/
+cython_debug/
+*.c
+*.cpp
+
+# Ignore generated python extension modules
+*.pyx.c
+*.pyx.cpp
+*.pyx.o
+*.o
